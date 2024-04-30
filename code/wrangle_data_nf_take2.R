@@ -120,7 +120,7 @@ final_df<-left_join(percent_calcs, scls_descriptions_wrangled %>%
 
 # 7. write csv -----
 #write.csv(final_df, "Outputs/landfire_conus_2022_t2.csv")
-write.csv(final_df, "Outputs/landfire_conus_EIS.csv")
+write.csv(final_df, "Outputs/landfire_conus_2022_t3.csv")
 
 # 8. some quick QAQC -----
 # Acres per region- compared our outputs to published NF data (https://www.fs.usda.gov/land/staff/lar/LAR2021/LARTable28.pdf).  Was looking for close as I simply summed COUNT per forest per region.  There will be some discrepancy due to water/barren/etc.  OK.
