@@ -1,5 +1,9 @@
 
+### Dependencies ----
 
+## Packages
+library(janitor)
+library(tidyverse)
 
 bps_scl_nf <- read_csv("inputs/bps_scl_nf.csv")  
 
