@@ -1,7 +1,8 @@
+
 ### Background ----
 # Title: Wrangle LANDFIRE/NF data
 # Authors: Randy Swaty, Amy Collins, Seth Spawn-Lee
-# Date created: pril 25, 2024
+# Date created: April 25, 2024
 # Last edited: April 30 2024
 
 # Wrangle input datasets so that we have a dataframe with reference percent, and current percent for each BpS, along with NF and Region information
@@ -91,13 +92,31 @@ landfire<-new_current_reference_data_clean %>%
 
 #fill in the blank values
 #names(landfire)
+#replace bps_name and other columns by bps_model (use direction up and down to remove all NAs)
 landfire2 <- landfire %>%
   group_by(bps_model) %>%
   fill(bps_code, bps_name, groupveg, fri_replac, fri_mixed, fri_surfac, fri_allfir, frg_new, .direction = "down")
 
-# 4. Calculate current scl percents -----
+landfire3 <- landfire2 %>%
+  group_by(bps_model) %>%
+  fill(bps_code, bps_name, groupveg, fri_replac, fri_mixed, fri_surfac, fri_allfir, frg_new, .direction = "up")
 
-percent_calcs <- landfire2 %>%
+#now to get the region by forest names correct too (use up and down direction)
+unique(landfire3$region)
+landfire4 <- landfire3 %>%
+  group_by(forestname) %>%
+  fill(region, forestorgc, .direction = "down")
+
+landfire5 <- landfire4 %>%
+  group_by(forestname) %>%
+  fill(region, forestorgc, .direction = "up")
+
+#double check all NAs gone
+#unique(landfire5$region)
+
+# 4. Calculate current sclass percents -----
+
+percent_calcs <- landfire5 %>%
   group_by(bps_model) %>%
   mutate(bps_count = sum(count, na.rm = TRUE)) %>%
   ungroup() %>%
@@ -108,19 +127,33 @@ percent_calcs <- landfire2 %>%
   mutate(across(21:23, ~round(.x,0)))  
 
 
-# 5. add the canopy category -----
-final_df<-left_join(percent_calcs, scls_descriptions_wrangled %>% 
-                      select(join_field, canopy_category), by = 'join_field')
+#altering cur_scls_acres and cur_percent values to zero
+#if theres a ref_percent value, replace cur_scls_acres and cur_percent with zero, otherwise NA (bc that class never existed)
+df <- percent_calcs %>%
+  mutate(cur_scls_acres = ifelse(is.na(cur_scls_acres) & !is.na(ref_percent), 0, cur_scls_acres),
+         cur_percent = ifelse(is.na(cur_percent) & !is.na(ref_percent), 0, cur_percent))
+
+# 5. add the age and canopy category -----
+names(scls_descriptions_wrangled)
+final_df<-left_join(df, scls_descriptions_wrangled %>% 
+                      select(join_field, age_category, canopy_category), by = 'join_field')
   
-#unique(final_df$canopy_category)
-#class_counts <- table(final_df$canopy_category)
-#print(class_counts)
-#names(final_df)  
+# unique(final_df$canopy_category)
+# class_counts <- table(final_df$canopy_category)
+# print(class_counts)
+# names(final_df)  
 
-
-# 7. write csv -----
+# 6. write csv -----
 #write.csv(final_df, "Outputs/landfire_conus_2022_t2.csv")
-write.csv(final_df, "Outputs/landfire_conus_2022_t3.csv")
+#write.csv(final_df, "Outputs/landfire_conus_2022_t3.csv")
+#write.csv(final_df, "Outputs/landfire_conus_2022_t4.csv")
+#write.csv(final_df, "Outputs/landfire_conus_2022_t5.csv")
+#write.csv(final_df, "Outputs/landfire_conus_2022_t6.csv")
+write.csv(final_df, "Outputs/landfire_conus_2022_t7.csv")
+
+#confirm by checking these bps codes
+#13022
+#10080
 
 # 8. some quick QAQC -----
 # Acres per region- compared our outputs to published NF data (https://www.fs.usda.gov/land/staff/lar/LAR2021/LARTable28.pdf).  Was looking for close as I simply summed COUNT per forest per region.  There will be some discrepancy due to water/barren/etc.  OK.
