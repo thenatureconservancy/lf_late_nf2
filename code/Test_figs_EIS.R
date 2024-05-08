@@ -1,7 +1,7 @@
-# Author: Amy Collins
+##### Author: Amy Collins
 ##### Title: Generating figures for 
 ##### Date created: April 24 2024
-##### Date last modified: May 7 2024
+##### Date last modified: May 8 2024
 
 ########### Step 1: packages and data ###########
 
@@ -13,6 +13,7 @@ library(ggplot2)
 library(viridis)
 library(cowplot)
 library(stringr)
+library(readr)
 
 getwd()
 
@@ -32,6 +33,8 @@ admin<-st_read("Data/S_USA.AdministrativeRegion/S_USA.AdministrativeRegion.shp")
 #then exclude Alaska too
 fsregion<-st_read("Data/S_USA.AdministrativeRegion_noHIorPR/S_USA.AdministrativeRegion_noHIorPR.shp")
 
+#bring in region names for labeling on figs
+region_name<-read_csv("Data/region_names.csv")
 
 ##################################################
 
@@ -113,8 +116,15 @@ region_condition <- landfire_filter %>%
          sign_change = (percent_change > 0),
          area_change = (cur_acres - ref_acres)/1000)
 
+#add the region names in
+region_condition$region<-as.numeric(region_condition$region)
+region_name$region<-as.numeric(region_name$region)
+
+named_regions<-region_condition %>% 
+  left_join(., region_name, by = "region")
+
 #save the csv to send to Seth
-write_csv(region_condition, "Outputs/landfire_fig_generation.csv")
+write_csv(named_regions, "Outputs/landfire_fig_generation.csv")
   
 
 # ######## Step 4: fig generation #############
@@ -145,28 +155,34 @@ write_csv(region_condition, "Outputs/landfire_fig_generation.csv")
 # 
 # canopy_arrow_plot
 #
+
+
+# how many x-axis units to position the percent label left or right of the bar
+label_x_offset = 400
+
 # # bar plot for acreage of each BPS
-bar<-region_condition %>%
+bar<-named_regions %>%
   #filter(canopy_category != 'OPN') %>%
   ggplot(aes(
     x=area_change,
-    y=region,
+    y=reorder(region_name, -region),
     fill = canopy_category)) +
   geom_bar(stat="identity", position = position_dodge(width = 0.8)) +
   theme_light(base_size = 12) +
   #coord_flip() + #need this for vertical
   scale_fill_manual(values = c("#91bfdb", "#fc8d59"), labels = c("Closed", "Open")) +
   #scale_fill_viridis_d(option = 'viridis', name = 'Canopy category', labels = c("Closed", "Open"), begin = 0.2, end = 0.8)+
-  scale_y_discrete(labels = function(y) paste("Region", y, sep = " ")) +  # Add "region" in front of each label
+ # scale_y_discrete(labels = function(y) paste("Region", y, sep = " ")) +  # Add "region" in front of each label
   labs(
-    y = 'Forest Service region',
+    y = 'Forest Service \n region',
     x = 'Net change in forested area for USFS Late Succession FRG class I (thousand acres)') +
-  # theme(
-  #   axis.title.y = element_blank(),  # Hide y-axis title
+  theme(
+  axis.title.y = element_text(angle = -360, vjust = 0.5)) +  # Hide y-axis title
   #   axis.text.y = element_blank()) +   # Hide y-axis tick labels
   labs(fill = "Canopy category") +
   geom_hline(yintercept=seq(1.5, 7.5, by = 1)) +
-  geom_text(aes(label = percent_change), vjust = -0, hjust = 0.5)
+  geom_text(aes(x = ifelse(area_change < 0, area_change - label_x_offset, area_change + label_x_offset), 
+                label = paste0(percent_change, '%'), group = canopy_category), position = position_dodge(0.9), hjust = 0.5)
 bar
 
 #
@@ -176,4 +192,7 @@ bar
 
 # #export plot
 ggsave('./outputs/region_classI_canopy_bar_plot.png', bar, width = 10.5, height = 6, units = 'in', dpi = 300)
+
+
+
 
