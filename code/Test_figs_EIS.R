@@ -109,10 +109,12 @@ region_condition <- landfire_filter %>%
             cur_acres = sum(cur_scls_acres)) %>% 
   mutate(region_ref_perc = (ref_acres/region_acre)*100,
          region_cur_perc = (cur_acres/region_acre)*100,
-         change = region_cur_perc - region_ref_perc,
-         sign_change = (change > 0),
-         area_change = (cur_acres - ref_acres)/1000,
-         percent_change = round(region_cur_perc - region_ref_perc, 0))
+         percent_change = round(region_cur_perc - region_ref_perc, 0),
+         sign_change = (percent_change > 0),
+         area_change = (cur_acres - ref_acres)/1000)
+
+#save the csv to send to Seth
+write_csv(region_condition, "Outputs/landfire_fig_generation.csv")
   
 
 # ######## Step 4: fig generation #############
