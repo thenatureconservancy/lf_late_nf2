@@ -33,7 +33,7 @@ raw_data = merge(raw_data, frg_grps, by = 'FRG', all = T)
 old_classes <- c("Late1", "Late2")
 
 # calculate net change and other summary stats
-summary3 = raw_data %>% 
+summary = raw_data %>% 
   filter(age_category %in% old_classes) %>% # keeping just Late1 and Late2
   filter(canopy_category != 'ALL') %>%
   group_by(region, frg_grp) %>%
@@ -48,54 +48,83 @@ summary3 = raw_data %>%
          percent_change = round(region_cur_perc - region_ref_perc, 0)) %>%
   drop_na() 
 
+# join region names
+region_names = read.csv('./inputs/region_names.csv')
+
+summary = merge(summary, region_names, by = 'region')
+summary$region_name = factor(summary$region_name, levels = unique(summary$region_name))
+
+# calculate net change and other summary stats for conus for "national" bars
+conus = raw_data %>% 
+  filter(age_category %in% old_classes) %>% # keeping just Late1 and Late2
+  filter(canopy_category != 'ALL') %>%
+  group_by(frg_grp) %>%
+  summarize(region_acre = sum(bps_acres),
+            ref_acres = sum(ref_scls_acres),
+            cur_acres = sum(cur_scls_acres)) %>% 
+  mutate(region_ref_perc = (ref_acres/region_acre)*100,
+         region_cur_perc = (cur_acres/region_acre)*100,
+         change = region_cur_perc - region_ref_perc,
+         sign_change = (change > 0),
+         area_change = (cur_acres - ref_acres)/1000,
+         percent_change = round(region_cur_perc - region_ref_perc, 0)) %>%
+  drop_na() 
+
+# add region and region_name columns to match summary
+conus = cbind(region = 0, conus, region_name = as.factor('National'))
+
+# combine conus and summary
+summary = rbind(conus, summary)
+
 # factor region to allow for discrete y axis in figures
-summary3$region = as.factor(summary3$region)
+summary$region = as.factor(summary$region)
 
 # how many x-axis units to position the percent label left or right of the bar
-label_x_offset = 400 
+label_x_offset = 1000 
 
 # bar plot of late successional acreage within each FRG in each region during ref condition
-bar_plot = summary3 %>%
+bar_plot = summary %>%
   ggplot(aes(
     x = area_change, 
-    y = region,
+    y = region_name,
     fill = frg_grp))+
   geom_col(position = 'dodge')+
   scale_x_continuous(label = comma)+
-  scale_y_discrete(limits=rev, labels = function(y) paste("Region", y, sep = " "))+  # ensures region 1 at top, 9 at bottom
+  scale_y_discrete(limits=rev)+  # ensures region 1 at top, 9 at bottom
   scale_fill_viridis_d(option = 'plasma', name = 'FRG', begin = 0, end = 0.8)+
   labs(
-    x = "\nNet change in late succession forest area (acres)", 
+    x = "\nNet change in late succession forest area (thousand acres)", 
     y = ""
   )+
   theme_bw(base_size = 14)+
-  geom_hline(yintercept=seq(1.5, 7.5, by = 1))+
+  geom_hline(yintercept=seq(1.5, 8.5, by = 1))+
   guides(fill = guide_legend(reverse=TRUE)) +# reverse legend to match bars
   geom_text(aes(x = ifelse(area_change < 0, area_change - label_x_offset, area_change + label_x_offset), 
                 label = paste0(percent_change, '%'), group = frg_grp), position = position_dodge(0.9), hjust = 0.5)
 
 bar_plot
 
-ggsave('./outputs/region_frg_plots_v2.png', bar_plot, width = 7, height = 6, units = 'in', dpi = 300)
+ggsave('./outputs/region_frg_plots_v2.png', bar_plot, width = 9, height = 6, units = 'in', dpi = 300)
+
 
 
 # #===========================
 # # check to compare with amy's FRG 1 Fig:
 # 
-# summary4 = raw_data %>% 
+# summary4 = raw_data %>%
 #   filter(age_category %in% old_classes) %>% # keeping just Late1 and Late2
 #   filter(canopy_category != 'ALL') %>%
 #   group_by(region, FRG) %>%  # grouping by FRG instead of frg_grp
 #   summarize(region_acre = sum(bps_acres),
 #             ref_acres = sum(ref_scls_acres),
-#             cur_acres = sum(cur_scls_acres)) %>% 
+#             cur_acres = sum(cur_scls_acres)) %>%
 #   mutate(region_ref_perc = (ref_acres/region_acre)*100,
 #          region_cur_perc = (cur_acres/region_acre)*100,
 #          change = region_cur_perc - region_ref_perc,
 #          sign_change = (change > 0),
 #          area_change = (cur_acres - ref_acres)/1000,
 #          percent_change = round(region_cur_perc - region_ref_perc, 0)) %>%
-#   drop_na() 
+#   drop_na()
 # 
 # summary4[summary4$FRG == 'I',]
 # 
