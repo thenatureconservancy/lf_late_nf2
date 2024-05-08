@@ -1,9 +1,8 @@
-
 ### Background ----
 # Title: Wrangle LANDFIRE/NF data
 # Authors: Randy Swaty, Amy Collins, Seth Spawn-Lee
 # Date created: April 25, 2024
-# Last edited: April 30 2024
+# Last edited: May 8 2024
 
 # Wrangle input datasets so that we have a dataframe with reference percent, and current percent for each BpS, along with NF and Region information
 
@@ -25,7 +24,8 @@ ref_con_long <- read_csv("Data/ref_con_long.csv")
 
 scls_descriptions <- read_csv("Data/scls_descriptions.csv")
 # succession class descriptions used to get label information (e.g., "Late" and "Closed", from landfirevegmodels SyncroSim package,https://apexrms.github.io/landfirevegmodels/)
-
+names(scls_descriptions)
+unique(scls_descriptions$ClassLabelID)
 
 # 2. Wrangle data -----
 
@@ -118,20 +118,28 @@ landfire5 <- landfire4 %>%
 
 percent_calcs <- landfire5 %>%
   group_by(bps_model) %>%
-  mutate(bps_count = sum(count, na.rm = TRUE)) %>%
+  mutate(bps_count = sum(count, na.rm = TRUE)) %>% #this is the sum of counted pixels from the 'current'. Is this correct?
   ungroup() %>%
   mutate(bps_acres = bps_count*0.2223945,
-         ref_scls_acres = bps_acres*(ref_percent/100),
-         cur_scls_acres = count*0.2223945,
+         ref_scls_acres = bps_acres*(ref_percent/100))
+         
+p_c<-percent_calcs %>% 
+group_by(join_field) %>%      
+         mutate(scls_count = sum(count, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  mutate(cur_scls_acres = scls_count*0.2223945,
          cur_percent = (cur_scls_acres/bps_acres)*100) %>%
-  mutate(across(21:23, ~round(.x,0)))  
+  mutate(across(22:24, ~round(.x,4))) 
+
+#cur_percent adds up to 100% for each bps
 
 
 #altering cur_scls_acres and cur_percent values to zero
 #if theres a ref_percent value, replace cur_scls_acres and cur_percent with zero, otherwise NA (bc that class never existed)
-df <- percent_calcs %>%
+df <- p_c %>%
   mutate(cur_scls_acres = ifelse(is.na(cur_scls_acres) & !is.na(ref_percent), 0, cur_scls_acres),
          cur_percent = ifelse(is.na(cur_percent) & !is.na(ref_percent), 0, cur_percent))
+
 
 # 5. add the age and canopy category -----
 names(scls_descriptions_wrangled)
@@ -149,7 +157,9 @@ final_df<-left_join(df, scls_descriptions_wrangled %>%
 #write.csv(final_df, "Outputs/landfire_conus_2022_t4.csv")
 #write.csv(final_df, "Outputs/landfire_conus_2022_t5.csv")
 #write.csv(final_df, "Outputs/landfire_conus_2022_t6.csv")
-write.csv(final_df, "Outputs/landfire_conus_2022_t7.csv")
+#write.csv(final_df, "Outputs/landfire_conus_2022_t7.csv")
+#write.csv(final_df, "Outputs/landfire_conus_2022_t8.csv")
+write.csv(final_df, "Outputs/landfire_conus_2022_t9.csv")
 
 #confirm by checking these bps codes
 #13022
