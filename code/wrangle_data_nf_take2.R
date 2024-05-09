@@ -1,4 +1,4 @@
-### Background ----
+## Background ----
 # Title: Wrangle LANDFIRE/NF data
 # Authors: Randy Swaty, Amy Collins, Seth Spawn-Lee
 # Date created: April 25, 2024
@@ -101,37 +101,17 @@ df <- p_c %>%
   mutate(cur_scls_acres = ifelse(is.na(cur_scls_acres) & !is.na(ref_percent), 0, cur_scls_acres),
          cur_percent = ifelse(is.na(cur_percent) & !is.na(ref_percent), 0, cur_percent))
 
+# 5. add the age and canopy category -----
+names(scls_descriptions_wrangled)
+final_df<-left_join(df, scls_descriptions_wrangled %>% 
+                      select(join_field, age_category, canopy_category), by = 'join_field')
 
-# 5. Remove conditions -----
-# remove sparse veg BpSs (no reference condition - LANDFIRE modeling rule)
-#codes for bps_model column
-remove_codes <- c(0, -1111, 10010, 10020, 10030, 10040, 10060, 10070)
 
-#codes for label column
-rc2<-c("Agriculture",
-       "Barren or Sparse",
-       "Developed",
-       "Fill-NoData",
-       "Fill-Not Mapped",
-       "Snow/Ice",
-       "UE",
-       "UN",
-       "Water",
-       "Blank")
-
-#remove conditions
-landfire<-df %>% 
-  filter(!bps_model %in% remove_codes) %>% 
-  filter(!label %in% rc2)
-
-#check values have been removed
-unique(landfire$bps_model)
-# unique(landfire$label)
-
+# 6. Remove conditions -----
 #fill in the blank values
 #names(landfire)
 #replace bps_name and other columns by bps_model (use direction up and down to remove all NAs)
-landfire2 <- landfire %>%
+landfire2 <- final_df %>%
   group_by(bps_model) %>%
   fill(bps_code, bps_name, groupveg, fri_replac, fri_mixed, fri_surfac, fri_allfir, frg_new, .direction = "down")
 
@@ -152,15 +132,6 @@ landfire5 <- landfire4 %>%
 #double check all NAs gone
 unique(landfire5$region)
 
-# 6. add the age and canopy category -----
-names(scls_descriptions_wrangled)
-final_df<-left_join(landfire5, scls_descriptions_wrangled %>% 
-                      select(join_field, age_category, canopy_category), by = 'join_field')
-  
-# unique(final_df$canopy_category)
-# class_counts <- table(final_df$canopy_category)
-# print(class_counts)
-# names(final_df)  
 
 # 7. write csv -----
 #write.csv(final_df, "Outputs/landfire_conus_2022_t2.csv")
@@ -171,7 +142,8 @@ final_df<-left_join(landfire5, scls_descriptions_wrangled %>%
 #write.csv(final_df, "Outputs/landfire_conus_2022_t7.csv")
 #write.csv(final_df, "Outputs/landfire_conus_2022_t8.csv")
 # write.csv(final_df, "Outputs/landfire_conus_2022_t9.csv")
-write.csv(final_df, "Outputs/landfire_conus_2022_t10.csv")
+#write.csv(final_df, "Outputs/landfire_conus_2022_t10.csv")
+write.csv(landfire5, "Outputs/landfire_conus_2022_t11.csv")
 
 #confirm by checking these bps codes
 #13022
