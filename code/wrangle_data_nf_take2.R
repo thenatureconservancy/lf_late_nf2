@@ -2,7 +2,7 @@
 # Title: Wrangle LANDFIRE/NF data
 # Authors: Randy Swaty, Amy Collins, Seth Spawn-Lee
 # Date created: April 25, 2024
-# Last edited: May 8 2024
+# Last edited: May 9 2024
 
 # Wrangle input datasets so that we have a dataframe with reference percent, and current percent for each BpS, along with NF and Region information
 
@@ -74,20 +74,58 @@ new_current_reference_data_clean <- new_current_reference_data %>%
             lc22_s_cla_230,
             forests_r))
 
+# 4. Calculate current sclass percents -----
+#add in the sum area for each bps column (importnat that this happens before we remove bps's and labels)
+n_c<-new_current_reference_data_clean %>% 
+  group_by(bps_model) %>% 
+  mutate(bps_model_count = sum(count, na.rm = T)) %>% 
+  ungroup() %>%
+  mutate(bps_model_acres = bps_model_count *0.2223945,
+         ref_scls_acres = bps_model_acres *(ref_percent/100))
+
+#now add in the current % and acreage
+p_c<-n_c %>% 
+  group_by(join_field) %>%      
+  mutate(cur_scls_count = sum(count, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  mutate(cur_scls_acres = cur_scls_count*0.2223945,
+         cur_percent = (cur_scls_acres/bps_model_acres)*100) %>%
+  mutate(across(20:24, ~round(.x,2))) 
+
+#cur_percent adds up to 100% for each bps
+
+
+#altering cur_scls_acres and cur_percent values to zero
+#if theres a ref_percent value, replace cur_scls_acres and cur_percent with zero, otherwise NA (bc that class never existed)
+df <- p_c %>%
+  mutate(cur_scls_acres = ifelse(is.na(cur_scls_acres) & !is.na(ref_percent), 0, cur_scls_acres),
+         cur_percent = ifelse(is.na(cur_percent) & !is.na(ref_percent), 0, cur_percent))
+
+
+# 5. Remove conditions -----
 # remove sparse veg BpSs (no reference condition - LANDFIRE modeling rule)
 #codes for bps_model column
 remove_codes <- c(0, -1111, 10010, 10020, 10030, 10040, 10060, 10070)
 
 #codes for label column
-rc2<-c("Barren or Sparse", "Fill-Not Mapped", "Snow/Ice", "Water")
+rc2<-c("Agriculture",
+       "Barren or Sparse",
+       "Developed",
+       "Fill-NoData",
+       "Fill-Not Mapped",
+       "Snow/Ice",
+       "UE",
+       "UN",
+       "Water",
+       "Blank")
 
 #remove conditions
-landfire<-new_current_reference_data_clean %>% 
+landfire<-df %>% 
   filter(!bps_model %in% remove_codes) %>% 
   filter(!label %in% rc2)
 
 #check values have been removed
-# unique(landfire$bps_model)
+unique(landfire$bps_model)
 # unique(landfire$label)
 
 #fill in the blank values
@@ -112,38 +150,11 @@ landfire5 <- landfire4 %>%
   fill(region, forestorgc, .direction = "up")
 
 #double check all NAs gone
-#unique(landfire5$region)
+unique(landfire5$region)
 
-# 4. Calculate current sclass percents -----
-
-percent_calcs <- landfire5 %>%
-  group_by(bps_model) %>%
-  mutate(bps_count = sum(count, na.rm = TRUE)) %>% #this is the sum of counted pixels from the 'current'. Is this correct?
-  ungroup() %>%
-  mutate(bps_acres = bps_count*0.2223945,
-         ref_scls_acres = bps_acres*(ref_percent/100))
-         
-p_c<-percent_calcs %>% 
-group_by(join_field) %>%      
-         mutate(scls_count = sum(count, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  mutate(cur_scls_acres = scls_count*0.2223945,
-         cur_percent = (cur_scls_acres/bps_acres)*100) %>%
-  mutate(across(22:24, ~round(.x,4))) 
-
-#cur_percent adds up to 100% for each bps
-
-
-#altering cur_scls_acres and cur_percent values to zero
-#if theres a ref_percent value, replace cur_scls_acres and cur_percent with zero, otherwise NA (bc that class never existed)
-df <- p_c %>%
-  mutate(cur_scls_acres = ifelse(is.na(cur_scls_acres) & !is.na(ref_percent), 0, cur_scls_acres),
-         cur_percent = ifelse(is.na(cur_percent) & !is.na(ref_percent), 0, cur_percent))
-
-
-# 5. add the age and canopy category -----
+# 6. add the age and canopy category -----
 names(scls_descriptions_wrangled)
-final_df<-left_join(df, scls_descriptions_wrangled %>% 
+final_df<-left_join(landfire5, scls_descriptions_wrangled %>% 
                       select(join_field, age_category, canopy_category), by = 'join_field')
   
 # unique(final_df$canopy_category)
@@ -151,7 +162,7 @@ final_df<-left_join(df, scls_descriptions_wrangled %>%
 # print(class_counts)
 # names(final_df)  
 
-# 6. write csv -----
+# 7. write csv -----
 #write.csv(final_df, "Outputs/landfire_conus_2022_t2.csv")
 #write.csv(final_df, "Outputs/landfire_conus_2022_t3.csv")
 #write.csv(final_df, "Outputs/landfire_conus_2022_t4.csv")
@@ -159,7 +170,8 @@ final_df<-left_join(df, scls_descriptions_wrangled %>%
 #write.csv(final_df, "Outputs/landfire_conus_2022_t6.csv")
 #write.csv(final_df, "Outputs/landfire_conus_2022_t7.csv")
 #write.csv(final_df, "Outputs/landfire_conus_2022_t8.csv")
-write.csv(final_df, "Outputs/landfire_conus_2022_t9.csv")
+# write.csv(final_df, "Outputs/landfire_conus_2022_t9.csv")
+write.csv(final_df, "Outputs/landfire_conus_2022_t10.csv")
 
 #confirm by checking these bps codes
 #13022
