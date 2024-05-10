@@ -15,7 +15,7 @@ lapply(packages, require, character.only = TRUE)
 
 # ==============================================================================
 
-raw_data = read.csv('./outputs/landfire_conus_2022_t8.csv')
+raw_data = read.csv('./outputs/landfire_conus_2022_t11.csv')
 
 # get FRG number by splitting "frg_new" strings
 raw_data['FRG'] = do.call(rbind.data.frame, strsplit(raw_data$frg_new, '-'))[,1] # some NAs for FRGs
@@ -34,19 +34,53 @@ old_classes <- c("Late1", "Late2")
 
 # calculate net change and other summary stats
 summary = raw_data %>% 
-  filter(age_category %in% old_classes) %>% # keeping just Late1 and Late2
-  filter(canopy_category != 'ALL') %>%
-  group_by(region, frg_grp) %>%
-  summarize(region_acre = sum(bps_acres),
-            ref_acres = sum(ref_scls_acres),
-            cur_acres = sum(cur_scls_acres)) %>% 
+  # filter(age_category %in% old_classes) %>% # keeping just Late1 and Late2
+  # filter(canopy_category != 'ALL') %>%
+  group_by(bps_model, region, frg_grp) %>%
+  
+  # revised summarize()
+  summarize(region_frg_count = sum(count),
+            region_frg_acre = region_count *0.2223945,
+            ref_reg_frg_acres = sum(ref_scls_acres),
+            cur_reg_frg_acres = sum(cur_scls_acres)) 
+
   mutate(region_ref_perc = (ref_acres/region_acre)*100,
          region_cur_perc = (cur_acres/region_acre)*100,
          change = region_cur_perc - region_ref_perc,
          sign_change = (change > 0),
          area_change = (cur_acres - ref_acres)/1000,
-         percent_change = round(region_cur_perc - region_ref_perc, 0)) %>%
-  drop_na() 
+         percent_change = round(region_cur_perc - region_ref_perc, 0))
+
+
+### NEW FROM AMY:
+
+# #codes for bps_model column
+# remove_codes <- c(0, -1111, 10010, 10020, 10030, 10040, 10060, 10070)
+# 
+# #codes for label column
+# rc2<-c("Agriculture",
+#        "Barren or Sparse",
+#        "Developed",
+#        "Fill-NoData",
+#        "Fill-Not Mapped",
+#        "Snow/Ice",
+#        "UE",
+#        "UN",
+#        "Water",
+#        "Blank")
+#
+# Also remove all but late successional classes as before!!
+# 
+# #remove conditions
+# landfire<-df %>% 
+#   filter(!bps_model %in% remove_codes) %>% 
+#   filter(!label %in% rc2)
+# 
+# #check values have been removed
+# unique(landfire$bps_model)
+# # unique(landfire$label)
+
+
 
 # join region names
 region_names = read.csv('./inputs/region_names.csv')
@@ -54,11 +88,13 @@ region_names = read.csv('./inputs/region_names.csv')
 summary = merge(summary, region_names, by = 'region')
 summary$region_name = factor(summary$region_name, levels = unique(summary$region_name))
 
+#### NEED TO UPDATE THIS (conus) TO REFLECT CHANGES MADE ABOVE TO SUMMARY:
+
 # calculate net change and other summary stats for conus for "national" bars
 conus = raw_data %>% 
   filter(age_category %in% old_classes) %>% # keeping just Late1 and Late2
   filter(canopy_category != 'ALL') %>%
-  group_by(frg_grp) %>%
+  group_by(bps_model, frg_grp) %>%
   summarize(region_acre = sum(bps_acres),
             ref_acres = sum(ref_scls_acres),
             cur_acres = sum(cur_scls_acres)) %>% 
