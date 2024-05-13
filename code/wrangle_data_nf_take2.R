@@ -1,4 +1,4 @@
-## Background ----
+### Background ----
 # Title: Wrangle LANDFIRE/NF data
 # Authors: Randy Swaty, Amy Collins, Seth Spawn-Lee
 # Date created: April 25, 2024
@@ -75,35 +75,39 @@ new_current_reference_data_clean <- new_current_reference_data %>%
             forests_r))
 
 # 4. Calculate current sclass percents -----
-#add in the sum area for each bps column (important that this happens before we remove bps's and labels)
-n_c<-new_current_reference_data_clean %>% 
-  group_by(bps_model) %>% 
-  mutate(bps_model_count = sum(count, na.rm = T)) %>% 
-  ungroup() %>%
-  mutate(bps_model_acres = bps_model_count *0.2223945,
-         ref_scls_acres = bps_model_acres *(ref_percent/100))
+#add in the sum area for each bps column (importnat that this happens before we remove bps's and labels)
+# n_c<-new_current_reference_data_clean %>% 
+#   group_by(bps_model) %>% #do label
+#   mutate(bps_model_count = sum(count, na.rm = T), #total pixels in each. bps
+#         bps_model_acres = bps_model_count *0.2223945) %>% 
+#   ungroup() %>%  
+#    group_by(join_field) %>%      
+#    mutate(ref_scls_acres = bps_model_acres *(ref_percent/100)) %>% 
+#   unique(.)
+# 
+# #now add in the current % and acreage
+# p_c<-n_c %>% 
+#   group_by(join_field) %>%      
+#   mutate(cur_scls_count = sum(count, na.rm = TRUE)) %>% 
+#   ungroup() %>% 
+#   mutate(cur_scls_acres = cur_scls_count*0.2223945,
+#          cur_percent = (cur_scls_acres/bps_model_acres)*100) %>%
+#   mutate(across(20:24, ~round(.x,2))) 
+# 
+# #cur_percent adds up to 100% for each bps
+# 
 
-#now add in the current % and acreage
-p_c<-n_c %>% 
-  group_by(join_field) %>%      
-  mutate(cur_scls_count = sum(count, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  mutate(cur_scls_acres = cur_scls_count*0.2223945,
-         cur_percent = (cur_scls_acres/bps_model_acres)*100) %>%
-  mutate(across(20:24, ~round(.x,2))) 
-
-#cur_percent adds up to 100% for each bps
+# #altering cur_scls_acres and cur_percent values to zero
+# #if theres a ref_percent value, replace cur_scls_acres and cur_percent with zero, otherwise NA (bc that class never existed)
+# df <- p_c %>%
+#   mutate(cur_scls_acres = ifelse(is.na(cur_scls_acres) & !is.na(ref_percent), 0, cur_scls_acres),
+#          cur_percent = ifelse(is.na(cur_percent) & !is.na(ref_percent), 0, cur_percent))
 
 
-#altering cur_scls_acres and cur_percent values to zero
-#if theres a ref_percent value, replace cur_scls_acres and cur_percent with zero, otherwise NA (bc that class never existed)
-df <- p_c %>%
-  mutate(cur_scls_acres = ifelse(is.na(cur_scls_acres) & !is.na(ref_percent), 0, cur_scls_acres),
-         cur_percent = ifelse(is.na(cur_percent) & !is.na(ref_percent), 0, cur_percent))
 
 # 5. add the age and canopy category -----
 names(scls_descriptions_wrangled)
-final_df<-left_join(df, scls_descriptions_wrangled %>% 
+final_df<-left_join(new_current_reference_data_clean, scls_descriptions_wrangled %>% 
                       select(join_field, age_category, canopy_category), by = 'join_field')
 
 
@@ -143,7 +147,19 @@ unique(landfire5$region)
 #write.csv(final_df, "Outputs/landfire_conus_2022_t8.csv")
 # write.csv(final_df, "Outputs/landfire_conus_2022_t9.csv")
 #write.csv(final_df, "Outputs/landfire_conus_2022_t10.csv")
-write.csv(landfire5, "Outputs/landfire_conus_2022_t11.csv")
+#write.csv(landfire5, "Outputs/landfire_conus_2022_t11.csv")
+write.csv(landfire5, "Outputs/landfire_conus_2022_t12.csv")
+  
+# unique(final_df$canopy_category)
+# class_counts <- table(final_df$canopy_category)
+# print(class_counts)
+# names(final_df)  
+
+
+#confirm by checking these bps codes
+#13022
+#10080
+
 
 #confirm by checking these bps codes
 #13022
