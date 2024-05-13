@@ -75,7 +75,7 @@ new_current_reference_data_clean <- new_current_reference_data %>%
             forests_r))
 
 # 4. Calculate current sclass percents -----
-#add in the sum area for each bps column (importnat that this happens before we remove bps's and labels)
+#add in the sum area for each bps column (important that this happens before we remove bps's and labels)
 n_c<-new_current_reference_data_clean %>% 
   group_by(bps_model) %>% 
   mutate(bps_model_count = sum(count, na.rm = T)) %>% 
