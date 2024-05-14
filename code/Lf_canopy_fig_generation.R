@@ -3,7 +3,7 @@
 ##### Date created: April 24 2024
 ##### Date last modified: May 13 2024
 
-########### Step 1: packages and data ###########
+########### 1: packages and data ###########
 
 library(tidyverse)
 library(dplyr)
@@ -37,7 +37,7 @@ unique(complete$label)
 #bring in region names for labeling on figs
 region_name<-read_csv("Inputs/region_names.csv")
 
-# ######## Step 2: obtain the denominator: total area for each region #####
+# ######## 2: obtain denominator: total area for each region #####
 ## mask out (aka filter out) any classes that are outside the regional area (fill - not mapped)
 ## or have the same pixel count for both reference and current condition that are of no interest (water, ice, snow) 
 names(complete)
@@ -118,7 +118,7 @@ unique(landfire$bps_model)
 unique(landfire$label)
 unique(landfire$age_category)
 
-######## Step 3: obtain the numerator: find out what % of FRG I late succession is open and closed ###
+######## 3: obtain the numerator: find out what % of FRG I late succession is open and closed ###
 #current
 cur_reg<-landfire %>% 
   group_by(region, canopy_category) %>% 
@@ -184,7 +184,7 @@ fig_data<-open_cls3 %>%
   left_join(., region_name, by = "region")
 
 
-######## step 4: generate bar plot ######
+######## 4: generate bar plot ######
 # how many x-axis units to position the percent label left or right of the bar
 label_x_offset = 400
 
