@@ -1,9 +1,9 @@
-##### Author: Amy Collins
+##### Author: Amy Collins, Seth Spawn-Lee, Randy Swaty
 ##### Title: Generating figures for Landfire: regional v FRG
 ##### Date created: May 12 2024
-##### Date last modified: May 12 2024
+##### Date last modified: May 14 2024
 
-########### Step 1: packages and data ###########
+########### 1: packages and data ###########
 
 library(tidyverse)
 library(dplyr)
@@ -40,7 +40,7 @@ region_name<-read_csv("inputs/region_names.csv")
 
 
 
-# ######## Step 2: obtain the denominator: total area is for each region (for cur and ref percent) #####
+# ######## 2: obtain denominator: total area is for each region (for cur and ref percent) #####
 ## mask out (aka filter out) any classes that are outside the regional area (fill - not mapped)
 ## or have the same pixel count for both reference and current condition that are of no interest (water, ice, snow) 
 names(complete)
@@ -115,7 +115,7 @@ unique(landfire$bps_model)
 unique(landfire$label)
 unique(landfire$age_category)
 
-######## for every region, find out what % of late succession is in each FRG (numerator) ###
+######## 3: obtain numerator: for every region, find out what % of late succession is in each FRG ######
 ### get FRGs grouped how we want them
 # get FRG number by splitting "frg_new" strings
 landfire['FRG'] = do.call(rbind.data.frame, strsplit(landfire$frg_new, '-'))[,1] # some NAs for FRGs
@@ -147,7 +147,7 @@ ref_frg2<-ref_frg %>%
          ref_perc_frg = round((ref_acre_frg/region_acres)*100, 2),
          percent_change = round(cur_perc_frg - ref_perc_frg, 0),
          sign_change = (percent_change > 0),
-         area_change = (cur_acre_frg - ref_acre_frg)/100) #thousand acres
+         area_change = (cur_acre_frg - ref_acre_frg)/1000) #thousand acres
 
 
 ###create a unique table with the area from each bps, then sum those across FRGs
