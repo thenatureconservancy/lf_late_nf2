@@ -34,7 +34,7 @@ unique(complete$label)
 # fsregion<-st_read("Data/S_USA.AdministrativeRegion_noHIorPR/S_USA.AdministrativeRegion_noHIorPR.shp")
 
 #bring in region names for labeling on figs
-region_name<-read_csv("Data/region_names.csv")
+region_name<-read_csv("inputs/region_names.csv")
 
 
 
