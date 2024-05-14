@@ -15,6 +15,7 @@ library(cowplot)
 library(stringr)
 library(readr)
 library(scales)
+library(NatParksPalettes)
 
 getwd()
 
@@ -179,7 +180,11 @@ frg_data<-frgs2 %>%
 
 ######## step 3: generate bar plot ######
 # bar plot of late successional acreage within each FRG in each region during ref condition
-label_x_offset = 2500
+
+pal = natparks.pals('DeathValley', 5)
+
+
+label_x_offset = 300
 
 bar_plot = frg_data %>%
   ggplot(aes(
@@ -189,7 +194,8 @@ bar_plot = frg_data %>%
   geom_col(position = 'dodge')+
   scale_x_continuous(label = comma)+
   #scale_y_discrete(limits=rev)+  # ensures region 1 at top, 9 at bottom
-  scale_fill_viridis_d(option = 'plasma', name = 'FRG', begin = 0, end = 0.8)+
+  # scale_fill_viridis_d(option = 'plasma', name = 'FRG', begin = 0, end = 0.8)+
+  scale_fill_manual(values = pal[1:3], name = 'FRG')+
   labs(
     x = "Net change in late succession forest area (thousand acres)", 
     y = ""

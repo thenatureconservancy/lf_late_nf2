@@ -2,7 +2,7 @@
 ##### Title: Generating figure for Landfire: national frg and open v closed
 ##### Date created: April 24 2024
 ##### Date last modified: May 14 2024
-
+rm(list = ls())
 ########### Step 1: packages and data ###########
 
 library(tidyverse)
@@ -15,9 +15,13 @@ library(cowplot)
 library(stringr)
 library(readr)
 library(scales)
+library(NatParksPalettes)
 
 getwd()
 
+pal = natparks.pals('DeathValley', 5)
+
+pal
 
 # final_bps_scls_2 <- read_csv("Data/final_bps_scls 2.csv")
 # demo <- read_csv("Data/demo.csv")
@@ -147,19 +151,19 @@ open_cls2<-open_cls %>%
 #          cur_percent = ifelse(is.na(cur_percent) & !is.na(ref_percent), 0, cur_percent))
 
 
-# #create a summary of the regional open/closed
-# open_cls3<-open_cls2 %>% 
-#   select(region, canopy_category, cur_area_canopy, cur_perc_canopy, ref_area_canopy, ref_perc_canopy, percent_change, 
-#          sign_change, region_acres) %>% 
-#   unique(.) %>% 
-#   mutate(area_change = (cur_area_canopy - ref_area_canopy)/1000) #thousand acres
+#create a summary of the regional open/closed
+open_cls3<-open_cls2 %>%
+  select(region, canopy_category, cur_area_canopy, cur_perc_canopy, ref_area_canopy, ref_perc_canopy, percent_change,
+         sign_change, region_acres) %>%
+  unique(.) %>%
+  mutate(area_change = (cur_area_canopy - ref_area_canopy)/1000) #thousand acres
 
 
 # now generate same table for national
 # grab the region acre, ref acre and current acre
 # recalculate the ref and cur percent
 
-national_condition <- open_cls2 %>%
+national_condition <- open_cls3 %>%
   group_by(canopy_category) %>%
   summarize(region_acres = sum(region_acres),
             ref_area_canopy = sum(ref_area_canopy),
@@ -168,39 +172,8 @@ national_condition <- open_cls2 %>%
          cur_perc_canopy = (cur_area_canopy/region_acres)*100,
          percent_change = round(cur_perc_canopy - ref_perc_canopy, 0),
          sign_change = (percent_change > 0),
-         area_change = (cur_area_canopy - ref_area_canopy)/1000,
+         area_change = (cur_area_canopy - ref_area_canopy)/1000, #thousand acres
          region = 0)
-
-label_x_offset = 50000
-# # bar plot for acreage of each BPS
-cond_bar<-national_condition %>%
-  #filter(canopy_category != 'OPN') %>%
-  ggplot(aes(
-    x = area_change,
-    y = as.factor(region),
-    fill = canopy_category)) +
-  geom_bar(stat="identity", position = position_dodge(width = 1)) +
-  theme_light(base_size = 14) +
-  guides(fill = guide_legend(reverse=TRUE)) +# reverse legend to match bars
-  #coord_flip() + #need this for vertical
-  scale_x_continuous(label = comma)+
-  scale_fill_manual(values = c("#91bfdb", "#fc8d59"), labels = c("Closed", "Open")) +
-  #scale_fill_viridis_d(option = 'viridis', name = 'Canopy category', labels = c("Closed", "Open"), begin = 0.2, end = 0.8)+
-  # scale_y_discrete(labels = function(y) paste("Region", y, sep = " ")) +  # Add "region" in front of each label
-  labs(
-    y = '',
-    x = 'Net change in late succession FRG class 1 forest area (thousand acres)') +
-  theme(
-    panel.grid.major.y = element_blank(),
-    axis.title.y = element_text(angle = -360, vjust = 0.5)) +  # Hide y-axis title
-  #   axis.text.y = element_blank()) +   # Hide y-axis tick labels
-  labs(fill = "Canopy category") +
-  # geom_hline(yintercept=seq(1.5, 7.5, by = 1)) +
-  geom_text(aes(x = ifelse(area_change < 0, area_change - label_x_offset, area_change + label_x_offset), 
-                label = paste0(percent_change, '%'), group = canopy_category), position = position_dodge(0.9), hjust = 0.5)
-cond_bar
-
-
 
 #===============================================================================
 
@@ -251,10 +224,18 @@ ref_frg2<-ref_frg %>%
          ref_perc_frg = round((ref_acre_frg/region_acres)*100, 2),
          percent_change = round(cur_perc_frg - ref_perc_frg, 0),
          sign_change = (percent_change > 0),
-         area_change = (cur_acre_frg - ref_acre_frg)/100) #thousand acres
+         area_change = (cur_acre_frg - ref_acre_frg)/1000) #thousand acres
+
+#create a summary of the regional FRG groupings
+ref_frg3<-ref_frg2 %>% 
+  select(region, frg_grp, region_acres, cur_acre_frg, ref_acre_frg, ref_perc_frg, percent_change, 
+         sign_change, percent_change) %>% 
+  unique(.) %>% 
+  mutate(area_change = (cur_acre_frg - ref_acre_frg)/1000) %>%#thousand acres
+  na.omit()
 
 
-national_frg <- ref_frg2 %>%
+national_frg <- ref_frg3 %>%
   group_by(frg_grp) %>%
   summarize(region_acres = sum(region_acres),
             ref_acre_frg = sum(ref_acre_frg),
@@ -267,11 +248,11 @@ national_frg <- ref_frg2 %>%
          region = 0)%>%
   drop_na()
 
-label_x_offset_cond = 50000
-label_x_offset_frg = 40000
+label_x_offset_cond = 1000
+label_x_offset_frg = 1000
 
-xmax = max(c(national_condition$area_change, national_frg$area_change))+(2*max(c(label_x_offset_cond, label_x_offset_frg)))
-xmin =min(c(national_condition$area_change, national_frg$area_change))-(2*max(c(label_x_offset_cond, label_x_offset_frg)))
+xmax = max(c(national_condition$area_change, national_frg$area_change))+(1.5*max(c(label_x_offset_cond, label_x_offset_frg)))
+xmin =min(c(national_condition$area_change, national_frg$area_change))-(1.5*max(c(label_x_offset_cond, label_x_offset_frg)))
 
 
 # # bar plot for acreage of each BPS
@@ -286,7 +267,7 @@ cond_bar<-national_condition %>%
   guides(fill = guide_legend(reverse=TRUE)) +# reverse legend to match bars
   #coord_flip() + #need this for vertical
   scale_x_continuous(label = comma, limits = c(xmin, xmax))+
-  scale_fill_manual(values = c("#91bfdb", "#fc8d59"), labels = c("Closed", "Open")) +
+  scale_fill_manual(values = pal[4:5], labels = c("Closed", "Open")) +
   #scale_fill_viridis_d(option = 'viridis', name = 'Canopy category', labels = c("Closed", "Open"), begin = 0.2, end = 0.8)+
   # scale_y_discrete(labels = function(y) paste("Region", y, sep = " ")) +  # Add "region" in front of each label
   labs(
@@ -300,7 +281,7 @@ cond_bar<-national_condition %>%
   #   axis.text.y = element_blank()) +   # Hide y-axis tick labels
   labs(fill = "Canopy category") +
   # geom_hline(yintercept=seq(1.5, 7.5, by = 1)) +
-  geom_text(aes(x = ifelse(area_change < 0, area_change - label_x_offset, area_change + label_x_offset), 
+  geom_text(aes(x = ifelse(area_change < 0, area_change - label_x_offset_cond, area_change + label_x_offset_cond), 
                 label = paste0(percent_change, '%'), group = canopy_category), position = position_dodge(0.9), hjust = 0.5)
 cond_bar
 
@@ -313,7 +294,9 @@ frg_bar = national_frg %>%
   geom_bar(stat="identity", position = position_dodge(width = 1))+
   scale_x_continuous(label = comma, limits = c(xmin, xmax))+
   #scale_y_discrete(limits=rev)+  # ensures region 1 at top, 9 at bottom
-  scale_fill_viridis_d(option = 'plasma', name = 'FRG', begin = 0, end = 0.8)+
+  # scale_fill_viridis_d(option = 'plasma', name = 'FRG', begin = 0, end = 0.8)+
+  scale_fill_manual(values = pal[1:3], name = 'FRG') +
+  
   labs(
     x = "Net change in late succession forest area (thousand acres)", 
     y = ""
@@ -324,7 +307,7 @@ frg_bar = national_frg %>%
         axis.ticks.y = element_blank())+
   #geom_hline(yintercept=seq(1.5, 8.5, by = 1))+
   guides(fill = guide_legend(reverse=TRUE)) +# reverse legend to match bars
-  geom_text(aes(x = ifelse(area_change < 0, area_change - label_x_offset, area_change + label_x_offset), 
+  geom_text(aes(x = ifelse(area_change < 0, area_change - label_x_offset_frg, area_change + label_x_offset_frg), 
                 label = paste0(percent_change, '%'), group = frg_grp), position = position_dodge(0.9), hjust = 0.5)
 
 frg_bar
@@ -332,5 +315,9 @@ frg_bar
 require(ggpubr)
 
 comb = ggarrange(frg_bar, cond_bar, ncol = 1, align = 'hv', heights = c(2.65, 2))
+comb
 
-ggsave('./outputs/national_frg_and_canopy_bar_plot.png', comb, width = 10.5, height = 6, units = 'in', dpi = 300)
+#ggsave('./outputs/national_frg_and_canopy_bar_plot.png', comb, width = 10.5, height = 6, units = 'in', dpi = 300)
+
+ggsave('./outputs/national_frg_bar_plot.png', frg_bar, width = 10.5, height = 2.5, units = 'in', dpi = 300)
+ggsave('./outputs/national_canopy_bar_plot.png', cond_bar, width = 10.5, height = 2.5, units = 'in', dpi = 300)

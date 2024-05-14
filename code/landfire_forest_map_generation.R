@@ -3,6 +3,7 @@
 ##### Date created: May 12 2024
 ##### Date last modified: May 13 2024
 
+rm(list = ls())
 ########### 1: packages and data ###########
 
 library(tidyverse)
@@ -15,23 +16,25 @@ library(cowplot)
 library(stringr)
 library(readr)
 library(RColorBrewer)
+library(NatParksPalettes)
 
 getwd()
+
 
 
 # final_bps_scls_2 <- read_csv("Data/final_bps_scls 2.csv")
 # demo <- read_csv("Data/demo.csv")
 # demo2<-subset(demo, bps_name !='etc') #remove extra dummy data rows
-complete<-read_csv("Outputs/landfire_conus_2022_t12.csv")
+complete<-read_csv("outputs/landfire_conus_2022_t12.csv")
 unique(complete$label)
 
 # read in national forests shapefile
-forest_admin = st_read('Data/S_USA.AdministrativeForest/S_USA.AdministrativeForest.shp') %>%
+forest_admin = st_read('inputs/spatial/S_USA.AdministrativeForest.shp') %>%
   filter(REGION != 10) %>%
   filter(FORESTORGC != "0816")
 
 #read in regions
-region_shp = st_read('Data/S_USA.AdministrativeRegion_noHIorPR/S_USA.AdministrativeRegion_noHIorPR.shp')
+region_shp = st_read('outputs/S_USA.AdministrativeRegion_noHIorPR.shp')
 
 # ######## 2: obtain denominator: total area for each forest (for ref percent) #####
 ## mask out (aka filter out) any classes that are outside the regional area (fill - not mapped)
@@ -166,6 +169,7 @@ centroids = regions %>%
 #   st_cast('LINESTRING')
 
 
+
 # map
 map = ggplot() +
   geom_sf(data = regions, fill = 'gray25', color = 'NA')+ # gray60
@@ -186,7 +190,7 @@ map = ggplot() +
   #         linewidth = 0.5)+
   # geom_sf(data = centroids)
   scale_fill_gradientn(name = 'Relative change in late succession forest area (%)',
-                       colours = brewer.pal(8, 'PRGn'),
+                       colours = rev(natparks.pals('Acadia', n = 100)),
                        limits = c(min(forests$percent_change), abs(min(forests$percent_change))),
                        expand = T,
                        breaks = c(-50, -25,0,25,50),

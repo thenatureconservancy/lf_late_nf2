@@ -188,6 +188,8 @@ fig_data<-open_cls3 %>%
 # how many x-axis units to position the percent label left or right of the bar
 label_x_offset = 400
 
+pal = natparks.pals('DeathValley', 5)
+
 # # bar plot for acreage of each BPS
 bar<-fig_data %>%
   #filter(canopy_category != 'OPN') %>%
@@ -200,7 +202,7 @@ bar<-fig_data %>%
   guides(fill = guide_legend(reverse=TRUE)) +# reverse legend to match bars
   #coord_flip() + #need this for vertical
   scale_x_continuous(label = comma)+
-  scale_fill_manual(values = c("#91bfdb", "#fc8d59"), labels = c("Closed", "Open")) +
+  scale_fill_manual(values = pal[4:5], labels = c("Closed", "Open")) +
   #scale_fill_viridis_d(option = 'viridis', name = 'Canopy category', labels = c("Closed", "Open"), begin = 0.2, end = 0.8)+
   # scale_y_discrete(labels = function(y) paste("Region", y, sep = " ")) +  # Add "region" in front of each label
   labs(
