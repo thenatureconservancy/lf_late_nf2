@@ -205,7 +205,7 @@ bar<-fig_data %>%
   # scale_y_discrete(labels = function(y) paste("Region", y, sep = " ")) +  # Add "region" in front of each label
   labs(
     y = '',
-    x = 'Net change in late succession FRG class I forest area (thousand acres)') +
+    x = 'Net change in late succession FRG class 1 forest area (thousand acres)') +
   theme(
     panel.grid.major.y = element_blank(),
     axis.title.y = element_text(angle = -360, vjust = 0.5)) +  # Hide y-axis title
