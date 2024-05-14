@@ -201,7 +201,7 @@ bar_plot = frg_data %>%
 
 bar_plot
 
-ggsave('./Outputs/region_frg_bar_plot.png', bar_plot, width = 9, height = 6, units = 'in', dpi = 300)
+ggsave('./Outputs/region_frg_bar_plot.png', bar_plot, width = 10.5, height = 6, units = 'in', dpi = 300)
 
 
 
