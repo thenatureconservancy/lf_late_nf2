@@ -193,7 +193,7 @@ bar_plot = frg_data %>%
     x = "Net change in late succession forest area (thousand acres)", 
     y = ""
   )+
-  theme_bw(base_size = 14)+
+  theme_light(base_size = 14)+
   geom_hline(yintercept=seq(1.5, 8.5, by = 1))+
   guides(fill = guide_legend(reverse=TRUE)) +# reverse legend to match bars
   geom_text(aes(x = ifelse(area_change < 0, area_change - label_x_offset, area_change + label_x_offset), 

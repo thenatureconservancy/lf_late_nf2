@@ -34,7 +34,7 @@ unique(complete$label)
 # fsregion<-st_read("Data/S_USA.AdministrativeRegion_noHIorPR/S_USA.AdministrativeRegion_noHIorPR.shp")
 
 #bring in region names for labeling on figs
-region_name<-read_csv("Data/region_names.csv")
+region_name<-read_csv("Inputs/region_names.csv")
 
 # ######## Step 2: obtain the denominator: total area for each region #####
 ## mask out (aka filter out) any classes that are outside the regional area (fill - not mapped)
@@ -195,7 +195,8 @@ bar<-fig_data %>%
     y=reorder(region_name, -region),
     fill = canopy_category)) +
   geom_bar(stat="identity", position = position_dodge(width = 0.8)) +
-  theme_light(base_size = 12) +
+  theme_light(base_size = 14) +
+  guides(fill = guide_legend(reverse=TRUE)) +# reverse legend to match bars
   #coord_flip() + #need this for vertical
   scale_fill_manual(values = c("#91bfdb", "#fc8d59"), labels = c("Closed", "Open")) +
   #scale_fill_viridis_d(option = 'viridis', name = 'Canopy category', labels = c("Closed", "Open"), begin = 0.2, end = 0.8)+
