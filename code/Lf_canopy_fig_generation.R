@@ -1,4 +1,4 @@
-##### Author: Amy Collins
+##### Author: Amy Collins, Seth Spawj-Lee, Randy Swaty
 ##### Title: Generating figure for Landfire: regional open v closed
 ##### Date created: April 24 2024
 ##### Date last modified: May 13 2024
