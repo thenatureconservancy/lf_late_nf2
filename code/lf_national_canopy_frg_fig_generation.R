@@ -1,7 +1,7 @@
-##### Author: Amy Collins
-##### Title: Generating figure for Landfire: regional open v closed
+##### Author: Seth Spawn-Lee & Amy Collins
+##### Title: Generating figure for Landfire: national frg and open v closed
 ##### Date created: April 24 2024
-##### Date last modified: May 13 2024
+##### Date last modified: May 14 2024
 
 ########### Step 1: packages and data ###########
 
