@@ -1,9 +1,9 @@
-##### Author: Amy Collins
+##### Author: Amy Collins, Seth Spawn-Lee, Randy Swaty
 ##### Title: Generating figures for Landfire: regional v forest
 ##### Date created: May 12 2024
 ##### Date last modified: May 13 2024
 
-########### Step 1: packages and data ###########
+########### 1: packages and data ###########
 
 library(tidyverse)
 library(dplyr)
@@ -33,7 +33,7 @@ forest_admin = st_read('Data/S_USA.AdministrativeForest/S_USA.AdministrativeFore
 #read in regions
 region_shp = st_read('Data/S_USA.AdministrativeRegion_noHIorPR/S_USA.AdministrativeRegion_noHIorPR.shp')
 
-# ######## 2: obtain denominator: total area is for each forest (for ref percent) #####
+# ######## 2: obtain denominator: total area for each forest (for ref percent) #####
 ## mask out (aka filter out) any classes that are outside the regional area (fill - not mapped)
 ## or have the same pixel count for both reference and current condition that are of no interest (water, ice, snow) 
 names(complete)
