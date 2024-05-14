@@ -1,4 +1,4 @@
-##### Author: Amy Collins, Seth Spawn Lee, Randy Swaty
+##### Author: Amy Collins
 ##### Title: Generating figure for Landfire: regional open v closed
 ##### Date created: April 24 2024
 ##### Date last modified: May 13 2024
@@ -201,8 +201,8 @@ bar<-fig_data %>%
   #scale_fill_viridis_d(option = 'viridis', name = 'Canopy category', labels = c("Closed", "Open"), begin = 0.2, end = 0.8)+
   # scale_y_discrete(labels = function(y) paste("Region", y, sep = " ")) +  # Add "region" in front of each label
   labs(
-    y = 'Forest Service \n region',
-    x = 'Net change in forested area for USFS Late Succession FRG class I (thousand acres)') +
+    y = '',
+    x = 'Net change in late succession FRG class I forest area (thousand acres)') +
   theme(
     axis.title.y = element_text(angle = -360, vjust = 0.5)) +  # Hide y-axis title
   #   axis.text.y = element_blank()) +   # Hide y-axis tick labels
@@ -214,16 +214,6 @@ bar
 
 # #export plot
 ggsave('./outputs/region_classI_canopy_bar_plot.png', bar, width = 10.5, height = 6, units = 'in', dpi = 300)
-
-
-#
-# #bring the two figs together using cowplot
-#fig<-plot_grid(canopy_arrow_plot, bar)
-#fig
-
-# #export plot
-ggsave('./outputs/region_classI_canopy_bar_plot.png', bar, width = 10.5, height = 6, units = 'in', dpi = 300)
-
 
 
 
