@@ -14,6 +14,7 @@ library(viridis)
 library(cowplot)
 library(stringr)
 library(readr)
+library(scales)
 
 getwd()
 
@@ -198,6 +199,7 @@ bar<-fig_data %>%
   theme_light(base_size = 14) +
   guides(fill = guide_legend(reverse=TRUE)) +# reverse legend to match bars
   #coord_flip() + #need this for vertical
+  scale_x_continuous(label = comma)+
   scale_fill_manual(values = c("#91bfdb", "#fc8d59"), labels = c("Closed", "Open")) +
   #scale_fill_viridis_d(option = 'viridis', name = 'Canopy category', labels = c("Closed", "Open"), begin = 0.2, end = 0.8)+
   # scale_y_discrete(labels = function(y) paste("Region", y, sep = " ")) +  # Add "region" in front of each label
@@ -205,6 +207,7 @@ bar<-fig_data %>%
     y = '',
     x = 'Net change in late succession FRG class I forest area (thousand acres)') +
   theme(
+    panel.grid.major.y = element_blank(),
     axis.title.y = element_text(angle = -360, vjust = 0.5)) +  # Hide y-axis title
   #   axis.text.y = element_blank()) +   # Hide y-axis tick labels
   labs(fill = "Canopy category") +

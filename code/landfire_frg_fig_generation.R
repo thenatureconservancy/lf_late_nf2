@@ -14,6 +14,7 @@ library(viridis)
 library(cowplot)
 library(stringr)
 library(readr)
+library(scales)
 
 getwd()
 
@@ -186,7 +187,7 @@ bar_plot = frg_data %>%
     y = reorder(region_name, -region),
     fill = frg_grp))+
   geom_col(position = 'dodge')+
-  #scale_x_continuous(label = comma)+
+  scale_x_continuous(label = comma)+
   #scale_y_discrete(limits=rev)+  # ensures region 1 at top, 9 at bottom
   scale_fill_viridis_d(option = 'plasma', name = 'FRG', begin = 0, end = 0.8)+
   labs(
@@ -194,6 +195,7 @@ bar_plot = frg_data %>%
     y = ""
   )+
   theme_light(base_size = 14)+
+  theme(panel.grid.major.y = element_blank())+
   geom_hline(yintercept=seq(1.5, 8.5, by = 1))+
   guides(fill = guide_legend(reverse=TRUE)) +# reverse legend to match bars
   geom_text(aes(x = ifelse(area_change < 0, area_change - label_x_offset, area_change + label_x_offset), 
