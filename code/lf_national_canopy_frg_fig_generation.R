@@ -321,3 +321,6 @@ comb
 
 ggsave('./outputs/national_frg_bar_plot.png', frg_bar, width = 10.5, height = 2.5, units = 'in', dpi = 300)
 ggsave('./outputs/national_canopy_bar_plot.png', cond_bar, width = 10.5, height = 2.5, units = 'in', dpi = 300)
+
+write.csv(national_frg, './outputs/national_frg_fig.csv', row.names = F)
+write.csv(national_condition, './outputs/national_condition_fig.csv', row.names = F)
